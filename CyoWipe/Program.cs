@@ -12,18 +12,18 @@ namespace CyoWipe
             {
                 if (args.Length != 1)
                 {
-                    Console.WriteLine("No disk specified!");
+                    Console.WriteLine("No folder specified!");
                     return 1;
                 }
 
-                var disk = args[0];
-                if (disk.Length != 1)
+                var folder = args[0];
+                if (!Directory.Exists(folder))
                 {
-                    Console.WriteLine("Disk letter not specified!");
+                    Console.WriteLine("Folder doesn't exist!");
                     return 1;
                 }
 
-                FillDisk(disk);
+                CreateFile(folder);
 
                 return 0;
             }
@@ -35,18 +35,16 @@ namespace CyoWipe
             }
         }
 
-        static void FillDisk(string disk)
+        static void CreateFile(string folder)
         {
-            Console.WriteLine($"Filling disk {disk}:...");
-
             for (int index = 1; ; ++index)
             {
-                var pathname = $"{disk}:\\__cyowipe{index}.txt";
+                var pathname = Path.Combine(folder, $"__cyowipe{index}.txt");
                 if (File.Exists(pathname))
                     continue;
 
                 using (var rng = RandomNumberGenerator.Create())
-                    FillDisk(pathname, rng);
+                    CreateFile(pathname, rng);
 
                 var fileInfo = new FileInfo(pathname);
                 if (fileInfo.Length == 0)
@@ -56,7 +54,7 @@ namespace CyoWipe
             }
         }
 
-        static void FillDisk(string pathname, RandomNumberGenerator rng)
+        static void CreateFile(string pathname, RandomNumberGenerator rng)
         {
             Console.WriteLine($"New file: {pathname}");
 
