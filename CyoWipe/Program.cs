@@ -59,40 +59,39 @@ namespace CyoWipe
             Console.WriteLine($"New file: {pathname}");
 
             long bytesWritten = 0;
-            using (var stream = new FileStream(pathname, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using var stream = new FileStream(pathname, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            var started = Environment.TickCount;
+            var lastProgress = started;
+
+            const int Mebibytes = (1024 * 1024);
+            const int Gibibytes = (Mebibytes * 1024);
+            int bufferSize = Mebibytes;
+
+            while (true)
             {
-                var started = Environment.TickCount;
-                var lastProgress = started;
-
-                const int Mebibytes = (1024 * 1024);
-                const int Gibibytes = (Mebibytes * 1024);
-                int bufferSize = Mebibytes;
-
-                while (true)
+                try
                 {
-                    try
-                    {
-                        var bytes = new byte[bufferSize];
-                        rng.GetBytes(bytes);
-                        stream.Write(bytes, 0, bytes.Length);
-                        bytesWritten += bufferSize;
+                    var bytes = new byte[bufferSize];
+                    rng.GetBytes(bytes);
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Flush();
+                    bytesWritten += bufferSize;
 
-                        var now = Environment.TickCount;
-                        if (now - lastProgress >= 1000) //every second
-                        {
-                            Console.Write($"\r{bytesWritten / Gibibytes:n0} GiB");
-                            lastProgress = now;
-                        }
-                    }
-                    catch (IOException ex)
+                    var now = Environment.TickCount;
+                    if (now - lastProgress >= 1000) //every second
                     {
-                        if (bufferSize <= 1)
-                        {
-                            Console.WriteLine($"\n{ex.Message}");
-                            break;
-                        }
-                        bufferSize /= 2;
+                        Console.Write($"\r{bytesWritten / Gibibytes:n0} GiB");
+                        lastProgress = now;
                     }
+                }
+                catch (IOException ex)
+                {
+                    if (bufferSize <= 1)
+                    {
+                        Console.WriteLine($"\n{ex.Message}");
+                        break;
+                    }
+                    bufferSize /= 2;
                 }
             }
         }
